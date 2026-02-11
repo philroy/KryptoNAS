@@ -22,69 +22,36 @@ Open `http://localhost:3000` in your browser.
 
 ## Arch Linux Deployment
 
-### Automated Install
-
-Run the install script as root to set up nginx, systemd, and all dependencies:
+### 1. Run the install script
 
 ```bash
 sudo ./install.sh
 ```
 
-This will:
-1. Install `nodejs`, `npm`, and `nginx` via pacman
-2. Create a `kryptonas` system user
-3. Install Node.js dependencies
-4. Configure nginx as a reverse proxy (port 80 -> 3000)
-5. Install and enable a systemd service for auto-start on boot
-6. Start the dashboard
+This installs Node.js deps, creates a `kryptonas` system user, and sets up a systemd service. It does **not** touch your nginx config.
 
-After installation, access the dashboard at `http://<your-server-ip>` from any device on your local network.
+### 2. Add the nginx server block
 
-### Manual Install
-
-#### Prerequisites
+Copy the contents of `deploy/nginx/kryptonas.conf` into the `http {}` block of your `/etc/nginx/nginx.conf`:
 
 ```bash
-sudo pacman -S nodejs npm nginx
+cat deploy/nginx/kryptonas.conf  # review it first
 ```
 
-#### 1. Install dependencies
+The key parts are the `map`, `upstream`, and `server` blocks. If you already have a `map $http_upgrade $connection_upgrade` in your config, skip the duplicate.
 
-```bash
-cd /home/user/KryptoNAS
-npm ci --omit=dev
-```
-
-#### 2. Create system user
-
-```bash
-sudo useradd --system --no-create-home --shell /usr/bin/nologin kryptonas
-sudo chown -R kryptonas:kryptonas /home/user/KryptoNAS
-```
-
-#### 3. Install systemd service
-
-```bash
-sudo cp deploy/systemd/kryptonas.service /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable --now kryptonas.service
-```
-
-#### 4. Configure nginx
-
-```bash
-sudo mkdir -p /etc/nginx/conf.d
-sudo cp deploy/nginx/kryptonas.conf /etc/nginx/conf.d/
-```
-
-Ensure `/etc/nginx/nginx.conf` includes `conf.d`:
-- Add `include /etc/nginx/conf.d/*.conf;` inside the `http {}` block
-- Comment out or remove the default `server {}` block listening on port 80
+Then test and reload:
 
 ```bash
 sudo nginx -t
-sudo systemctl enable --now nginx
+sudo systemctl reload nginx
 ```
+
+### 3. DNS
+
+Point `cache.philroy.au` to your NAS IP (A record or local DNS).
+
+The dashboard is then live at `http://cache.philroy.au`.
 
 ### Managing the Service
 
@@ -101,14 +68,16 @@ sudo systemctl stop kryptonas          # Stop
 sudo ./uninstall.sh
 ```
 
+Then remove the KryptoNAS server block from your `/etc/nginx/nginx.conf` manually.
+
 ## Architecture
 
 ```
-Browser (LAN) ---> nginx (:80) ---> Node.js/Express (:3000)
-                   reverse proxy     HTTP + WebSocket
+cache.philroy.au ---> nginx (:80) ---> Node.js/Express (:3000)
+                      your config       localhost only
 ```
 
-nginx handles port 80 and proxies all traffic (including WebSocket upgrades) to the Node.js backend on localhost:3000.
+Node.js binds to `127.0.0.1:3000` only. All external traffic goes through your existing nginx.
 
 ## API Endpoints
 
@@ -126,5 +95,5 @@ Edit `data/cache-config.json` to add or modify cached applications. Environment 
 | Variable | Default | Description |
 |---|---|---|
 | `PORT` | 3000 | Server port |
-| `HOST` | 127.0.0.1 | Bind address (localhost when behind nginx) |
+| `HOST` | 127.0.0.1 | Bind address (localhost behind nginx) |
 | `UPDATE_INTERVAL` | 3000 | WebSocket broadcast interval (ms) |

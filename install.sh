@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 #
 # KryptoNAS Dashboard - Arch Linux Installation Script
-# Installs and configures: Node.js, nginx reverse proxy, systemd service
+# Installs Node.js deps, sets up systemd service, and prints nginx instructions.
+# Does NOT modify your existing nginx.conf - you add the server block yourself.
 #
 set -euo pipefail
 
 APP_DIR="$(cd "$(dirname "$0")" && pwd)"
 APP_USER="kryptonas"
 SERVICE_NAME="kryptonas"
-NGINX_CONF_DIR="/etc/nginx/conf.d"
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -31,8 +31,8 @@ fi
 info "Starting KryptoNAS deployment from: ${APP_DIR}"
 
 # --- Step 1: Install system packages ---
-info "Installing system packages (nodejs, npm, nginx)..."
-pacman -S --noconfirm --needed nodejs npm nginx
+info "Installing system packages (nodejs, npm)..."
+pacman -S --noconfirm --needed nodejs npm
 
 # --- Step 2: Create dedicated system user ---
 if id "${APP_USER}" &>/dev/null; then
@@ -57,59 +57,33 @@ cp "${APP_DIR}/deploy/systemd/kryptonas.service" "/etc/systemd/system/${SERVICE_
 systemctl daemon-reload
 systemctl enable "${SERVICE_NAME}.service"
 
-# --- Step 6: Configure nginx ---
-info "Configuring nginx..."
-mkdir -p "${NGINX_CONF_DIR}"
-
-# Ensure nginx.conf includes conf.d (Arch default may not have this)
-if ! grep -q 'include.*conf\.d' /etc/nginx/nginx.conf; then
-    warn "Adding conf.d include to nginx.conf..."
-    sed -i '/^http {/a \    include /etc/nginx/conf.d/*.conf;' /etc/nginx/nginx.conf
-fi
-
-# Comment out default server block on port 80 to avoid conflicts
-if grep -q '^\s*listen\s.*80;' /etc/nginx/nginx.conf; then
-    warn "Commenting out default server block on port 80 in nginx.conf..."
-    cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.bak
-    sed -i '/^    server {/,/^    }/s/^/#/' /etc/nginx/nginx.conf
-    info "Backup saved at /etc/nginx/nginx.conf.bak"
-fi
-
-cp "${APP_DIR}/deploy/nginx/kryptonas.conf" "${NGINX_CONF_DIR}/kryptonas.conf"
-
-if nginx -t 2>/dev/null; then
-    info "Nginx configuration test passed"
-else
-    error "Nginx configuration test FAILED. Check ${NGINX_CONF_DIR}/kryptonas.conf"
-fi
-
-systemctl enable nginx.service
-systemctl restart nginx.service
-
-# --- Step 7: Start the application ---
+# --- Step 6: Start the application ---
 info "Starting KryptoNAS service..."
 systemctl start "${SERVICE_NAME}.service"
 
 sleep 2
 if systemctl is-active --quiet "${SERVICE_NAME}.service"; then
-    info "KryptoNAS service is running"
+    info "KryptoNAS service is running on 127.0.0.1:3000"
 else
     warn "Service may not have started. Check: journalctl -u ${SERVICE_NAME} -e"
 fi
 
-# --- Done ---
+# --- Step 7: Nginx instructions ---
 info "============================================"
-info "  KryptoNAS Dashboard deployed successfully!"
+info "  KryptoNAS node service is up!"
 info "============================================"
 info ""
-info "Access the dashboard at:"
-for ip in $(hostname -I); do
-    info "  http://${ip}"
-done
-info "  http://$(hostname)"
+info "Now add the nginx server block to your existing /etc/nginx/nginx.conf."
+info "The config is at: ${APP_DIR}/deploy/nginx/kryptonas.conf"
+info ""
+info "Copy the contents into the http {} block of your nginx.conf, then:"
+info "  sudo nginx -t"
+info "  sudo systemctl reload nginx"
+info ""
+info "Once done, the dashboard will be live at:"
+info "  http://cache.philroy.au"
 info ""
 info "Useful commands:"
 info "  sudo systemctl status ${SERVICE_NAME}       # Check status"
 info "  sudo journalctl -u ${SERVICE_NAME} -f       # Follow logs"
 info "  sudo systemctl restart ${SERVICE_NAME}       # Restart app"
-info "  sudo systemctl restart nginx                 # Restart nginx"
