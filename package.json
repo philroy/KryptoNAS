@@ -1,0 +1,17 @@
+{
+  "name": "kryptonas",
+  "version": "1.0.0",
+  "description": "KryptoNAS Cache Dashboard - Monitor and manage NAS cache for multiple web applications",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["nas", "cache", "dashboard", "monitoring"],
+  "author": "philroy",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "ws": "^8.16.0"
+  }
+}

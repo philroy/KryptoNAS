@@ -1,0 +1,10 @@
+services:
+  kryptonas:
+    build: .
+    container_name: kryptonas-dashboard
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - UPDATE_INTERVAL=3000
+    restart: unless-stopped

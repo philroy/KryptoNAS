@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KryptoNAS - Cache Dashboard</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗄️</text></svg>">
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-left">
+        <div class="logo">
+          <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="2" width="20" height="8" rx="2"/>
+            <rect x="2" y="14" width="20" height="8" rx="2"/>
+            <circle cx="6" cy="6" r="1" fill="currentColor"/>
+            <circle cx="6" cy="18" r="1" fill="currentColor"/>
+            <line x1="10" y1="6" x2="18" y2="6"/>
+            <line x1="10" y1="18" x2="18" y2="18"/>
+          </svg>
+          <h1>KryptoNAS</h1>
+        </div>
+        <span class="badge badge-active">Cache Dashboard</span>
+      </div>
+      <div class="header-right">
+        <div class="connection-status" id="connStatus">
+          <span class="status-dot"></span>
+          <span class="status-text">Connecting...</span>
+        </div>
+        <div class="uptime" id="uptime">Uptime: --</div>
+      </div>
+    </header>
+
+    <!-- Overview Cards -->
+    <section class="overview-grid" id="overviewGrid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(99, 102, 241, 0.15); color: #818cf8;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Active Apps</span>
+          <span class="stat-value" id="statActiveApps">--</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(16, 185, 129, 0.15); color: #34d399;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Avg Hit Rate</span>
+          <span class="stat-value" id="statHitRate">--%</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(245, 158, 11, 0.15); color: #fbbf24;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0022 16z"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Cache Used</span>
+          <span class="stat-value" id="statCacheUsed">--</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background: rgba(239, 68, 68, 0.15); color: #f87171;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
+        <div class="stat-info">
+          <span class="stat-label">Avg Response</span>
+          <span class="stat-value" id="statResponseTime">-- ms</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cache Utilization Bar -->
+    <section class="cache-utilization-section">
+      <div class="section-header">
+        <h2>Total Cache Utilization</h2>
+        <span class="utilization-text" id="utilizationText">-- / --</span>
+      </div>
+      <div class="utilization-bar-container">
+        <div class="utilization-bar" id="utilizationBar" style="width: 0%"></div>
+      </div>
+      <div class="utilization-meta">
+        <span id="utilizationPercent">0%</span>
+        <span id="totalEntries">-- entries</span>
+      </div>
+    </section>
+
+    <!-- App Cards Grid -->
+    <section class="apps-section">
+      <div class="section-header">
+        <h2>Application Caches</h2>
+        <div class="filter-group">
+          <button class="filter-btn active" data-filter="all">All</button>
+          <button class="filter-btn" data-filter="media">Media</button>
+          <button class="filter-btn" data-filter="files">Files</button>
+          <button class="filter-btn" data-filter="security">Security</button>
+        </div>
+      </div>
+      <div class="apps-grid" id="appsGrid">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- App Detail Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal" id="appModal">
+        <div class="modal-header">
+          <h2 id="modalTitle">App Details</h2>
+          <button class="modal-close" id="modalClose">&times;</button>
+        </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Populated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
